@@ -60,6 +60,12 @@ def fetch_all(cfg: Config) -> tuple[list[Channel], list[SourceResult]]:
         channels.extend(chans)
         results.append(res)
 
+    for i, url in enumerate(cfg.m3u_upstreams):
+        ref = f"m3u:{url.rsplit('/', 1)[-1] or i}"
+        chans, res = _get_m3u(url, ref)
+        channels.extend(chans)  # full playlists already carry group-title; keep as-is
+        results.append(res)
+
     for spec in cfg.channels_explicit:
         channels.append(
             Channel(
@@ -87,6 +93,24 @@ def dedupe(channels: list[Channel]) -> list[Channel]:
         seen.add(k)
         out.append(c)
     return out
+
+
+FEATURED_GROUP = "\u2605 Featured"
+
+
+def apply_featured(channels: list[Channel], patterns: list[str]) -> int:
+    """Re-tag marquee channels (by name substring) into a Featured group that the
+    emitter surfaces first. Reuses already-validated channels from the full catalog
+    instead of maintaining a separate hand-curated list of fragile URLs."""
+    if not patterns:
+        return 0
+    n = 0
+    for c in channels:
+        low = c.name.lower()
+        if any(p in low for p in patterns):
+            c.group = FEATURED_GROUP
+            n += 1
+    return n
 
 
 def apply_exclude(channels: list[Channel], cfg: Config) -> list[Channel]:

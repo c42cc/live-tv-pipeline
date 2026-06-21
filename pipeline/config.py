@@ -29,10 +29,12 @@ class ValidatePolicy:
 class Config:
     countries: list[str]
     categories: list[str]
+    m3u_upstreams: list[str]
     channels_explicit: list[dict]
     website_sources: list[dict]
     exclude_tvg_ids: set[str]
     exclude_name_contains: list[str]
+    featured_name_contains: list[str]
     country_url: str
     category_url: str
     epg_enabled: bool
@@ -68,10 +70,11 @@ def load_config(path: Path | None = None) -> Config:
 
     countries = [str(c).strip().lower() for c in (include.get("countries") or [])]
     categories = [str(c).strip().lower() for c in (include.get("categories") or [])]
+    m3u_upstreams = [str(u).strip() for u in (include.get("m3u_upstreams") or [])]
     web = include.get("website_sources") or []
     explicit = include.get("channels_explicit") or []
 
-    if not (countries or categories or web or explicit):
+    if not (countries or categories or m3u_upstreams or web or explicit):
         raise PipelineError(
             "sources.yaml declares no content (countries/categories/website_sources/"
             "channels_explicit all empty). Refusing to emit an empty grid."
@@ -86,10 +89,12 @@ def load_config(path: Path | None = None) -> Config:
     return Config(
         countries=countries,
         categories=categories,
+        m3u_upstreams=m3u_upstreams,
         channels_explicit=explicit,
         website_sources=web,
         exclude_tvg_ids={str(x).strip().lower() for x in (exclude.get("tvg_ids") or [])},
         exclude_name_contains=[str(x).strip().lower() for x in (exclude.get("name_contains") or [])],
+        featured_name_contains=[str(x).strip().lower() for x in (include.get("featured") or [])],
         country_url=upstreams["country_url"],
         category_url=upstreams["category_url"],
         epg_enabled=bool(epg.get("enabled", False)),

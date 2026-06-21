@@ -14,12 +14,40 @@
 # =============================================================================
 
 include:
-  # iptv-org country codes (ISO 3166-1 alpha-2, EXCEPT the UK which iptv-org
-  # files as `uk`, not `gb`). The build reports any code that 404s.
-  countries: [us, uk, fr, de, jp, ca, au, qa]
+  # FULL free world catalog: one upstream = every iptv-org channel, grouped by
+  # category (News, Sports, Movies, Kids, Music, Documentary, ...). ~13k raw;
+  # validation prunes the dead ones so the grid stays clean.
+  m3u_upstreams:
+    - "https://iptv-org.github.io/iptv/index.category.m3u"
 
-  # Cross-country category pulls from iptv-org.
-  categories: [news, business, sports, documentary, science]
+  # Marquee global channels (by name) get lifted into a "Featured" group that
+  # shows FIRST -- recognizable world TV, not an obscure landing channel.
+  featured:
+    - "al jazeera english"
+    - "france 24 english"
+    - "dw english"
+    - "deutsche welle"
+    - "nhk world"
+    - "sky news"
+    - "euronews"
+    - "cgtn"
+    - "africanews"
+    - "trt world"
+    - "channel news asia"
+    - "bloomberg"
+    - "cnbc"
+    - "arirang"
+    - "nasa"
+    - "red bull tv"
+    - "abc news"
+    - "cbc news"
+    - "pbs newshour"
+    - "euronews english"
+
+  # Per-country / per-category pulls (optional; the full upstream above already
+  # covers everything). Left empty by default.
+  countries: []
+  categories: []
 
   # Broadcaster-direct or any other working HLS/DASH/MPEG-TS you have.
   channels_explicit: []
@@ -44,7 +72,8 @@ exclude:
   # Blocklist specific channels by tvg-id (exact match).
   tvg_ids: []
   # Drop channels whose name matches any of these (case-insensitive substring).
-  name_contains: []
+  # iptv-org excludes adult content by policy; these are belt-and-suspenders.
+  name_contains: ["xxx", "porn", "adult", "+18", "18+"]
 
 # Resolvers for the country/category references above. {code}/{category} are
 # substituted per include entry. Public, stable, anonymously fetchable.
@@ -63,10 +92,11 @@ epg:
   enabled: false
   sources: []
 
-# Validation + pruning policy (the reliability multiplier).
+# Validation + pruning policy (the reliability multiplier). Scaled for the full
+# ~13k catalog: more workers, a wider time budget.
 validate:
   ffprobe_timeout_s: 8      # per-stream liveness probe timeout
-  max_workers: 60           # concurrent probes
-  time_budget_s: 900        # hard ceiling for the whole validate phase
+  max_workers: 120          # concurrent probes
+  time_budget_s: 2000       # hard ceiling for the whole validate phase
   prune_after_failures: 3   # consecutive failed builds before a channel is dropped
   grace_days: 2             # keep a once-alive channel this long while under the failure threshold

@@ -18,7 +18,7 @@ from .config import DIST_DIR, load_config
 from .emit import write_epg, write_playlist, write_report
 from .emit_types import BuildReport
 from .epg import merge_epg
-from .fetch import apply_exclude, dedupe, fetch_all
+from .fetch import apply_exclude, apply_featured, dedupe, fetch_all
 from .preflight import preflight
 from .resolve_web import resolve_web_sources
 from .validate import validate_and_select
@@ -34,6 +34,7 @@ def build(limit: int | None = None) -> BuildReport:
     candidates = fetched + web_channels
 
     candidates = apply_exclude(dedupe(candidates), cfg)
+    apply_featured(candidates, cfg.featured_name_contains)
     deduped_n = len(candidates)
     if limit:
         candidates = candidates[:limit]

@@ -12,12 +12,14 @@ from datetime import datetime, timezone
 
 from .config import DIST_DIR
 from .emit_types import BuildReport
+from .fetch import FEATURED_GROUP
 from .models import Channel, serialize_m3u
 from .validate import ProbeOutcome
 
 
-def _sort_key(c: Channel) -> tuple[str, str]:
-    return (c.group.lower(), c.name.lower())
+def _sort_key(c: Channel) -> tuple[int, str, str]:
+    # Featured group sorts first; everything else alphabetically by group then name.
+    return (0 if c.group == FEATURED_GROUP else 1, c.group.lower(), c.name.lower())
 
 
 def write_playlist(outcomes: list[ProbeOutcome]) -> int:
