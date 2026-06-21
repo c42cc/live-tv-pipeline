@@ -1,13 +1,13 @@
 {
-  "generated_utc": "2026-06-21T08:15:16.395355+00:00",
+  "generated_utc": "2026-06-21T08:43:10.121520+00:00",
   "candidates": 4169,
   "deduped": 3719,
-  "alive": 2413,
-  "grace": 2,
-  "emitted": 2415,
+  "alive": 2548,
+  "grace": 55,
+  "emitted": 2603,
   "pruned": 0,
-  "dead_unknown": 1304,
-  "pass_rate": 0.6488,
+  "dead_unknown": 1116,
+  "pass_rate": 0.6851,
   "sources": [
     {
       "ref": "country:us",
@@ -92,5 +92,5 @@
   "epg": {
     "enabled": false
   },
-  "duration_s": 227.9
+  "duration_s": 251.9
 }
