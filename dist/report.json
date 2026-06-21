@@ -1,13 +1,13 @@
 {
-  "generated_utc": "2026-06-21T09:49:37.572962+00:00",
+  "generated_utc": "2026-06-21T14:44:09.149571+00:00",
   "candidates": 13022,
   "deduped": 12511,
-  "alive": 7467,
-  "grace": 782,
-  "emitted": 8249,
-  "pruned": 10,
-  "dead_unknown": 4252,
-  "pass_rate": 0.5968,
+  "alive": 6811,
+  "grace": 1508,
+  "emitted": 8319,
+  "pruned": 83,
+  "dead_unknown": 4109,
+  "pass_rate": 0.5444,
   "sources": [
     {
       "ref": "m3u:index.category.m3u",
@@ -20,5 +20,5 @@
   "epg": {
     "enabled": false
   },
-  "duration_s": 638.6
+  "duration_s": 661.7
 }
