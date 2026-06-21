@@ -14,11 +14,16 @@ forever (Invariant 0) and is otherwise a clean, capable Android TV.
 
 - TiviMate `5.3.2` (`ar.tvplayer.tv`) — the live-TV grid, points at the playlist URL
 - FLauncher `0.18.0` (`me.efesser.flauncher`) — clean Home (stock launcher disabled)
-- droidVNC-NG `2.20.0` (`net.christianbeier.droidvnc_ng`) — remote screen, port 5900, start-on-boot
 - TV Bro `2.1.6` (`com.phlox.tvwebbrowser`) — TV browser w/ built-in content blocking
 - Tailscale `1.98.4` (`com.tailscale.ipn`) — management mesh
 - Kept consumer apps: Netflix, Prime Video, YouTube, Plex
 - Removed: Vudu, Amazon Music, Play Games, Google TV/Movies, YouTube Music, Plex media server
+
+Remote screen view+control is **ADB + scrcpy**, not a VNC server. droidVNC-NG was
+trialed and dropped: its MediaProjection-on-boot path is not reliably unattended on
+Android 11 (the server fails to bind on cold boot). ADB-over-network survives reboot
+cleanly here, so one boot-robust channel (ADB) does both screen and admin — fewer
+moving parts, no boot failure mode.
 
 ## Ad-blocking (the primitive, not a per-app extension)
 
@@ -28,16 +33,16 @@ in every app, and follows the device to any network. TV Bro adds page-level bloc
 ## Two planes (Invariant 2)
 
 - **Content**: stream bytes go direct to the public internet (never via Tailscale).
-- **Management**: VNC (5900) + ADB (5555) ride Tailscale only; never port-forwarded.
+- **Management**: ADB (5555) rides Tailscale only; never port-forwarded.
 
 ## Remote in (from a Mac on the tailnet)
 
 ```bash
-# screen view + control
-vncdotool -s shield-parents::5900 --password "$SHIELD_VNC_PASSWORD" capture /tmp/tv.png   # headless check
-open vnc://shield-parents:5900        # interactive (macOS Screen Sharing)
-# admin / push
-adb connect shield-parents:5555 && scrcpy
+adb connect shield-parents:5555
+scrcpy --no-audio                              # interactive screen view + control
+adb exec-out screencap -p > /tmp/tv.png        # quick headless screenshot
+adb install -r app.apk                         # push/update an app
+adb reboot                                     # remote reboot
 ```
 
 ## Rebuild
@@ -50,6 +55,6 @@ VNC password, Tailscale approval) that cannot be done headlessly.
 
 - TiviMate fetched the published URL -> 2415 channels parsed -> live video played
   on the panel (confirmed by remote screencap).
-- droidVNC capture worked over the network with password auth (Screen Capturing,
-  Input, Start-on-Boot all GRANTED).
+- ADB-over-network + scrcpy stream the live 1920x1080 screen to the Mac, and ADB
+  reconnects unattended ~55s after a reboot (FLauncher home + AdGuard DNS persist).
 - Pipeline CI (GitHub Actions) built + validated + published green in 5m28s.

@@ -21,7 +21,6 @@ S(){ adb -s "$ADB_ADDR" "$@"; }
 
 # Pinned APK versions (captured from the verified build).
 TVBRO="https://github.com/truefedex/tv-bro/releases/download/v2.1.6/tvbro-2.1.6-generic-geckoIncluded-arm64-v8a.apk"
-DROIDVNC="https://github.com/bk138/droidVNC-NG/releases/download/v2.20.0/droidvnc-ng-2.20.0.apk"
 TAILSCALE="https://github.com/tailscale/tailscale-android/releases/download/1.98.4-t9e69045b2-g0b6f6554d/tailscale-android-universal-1.98.4.apk"
 FLAUNCHER="https://gitlab.com/api/v4/projects/26632151/packages/generic/flauncher/0.18.0/flauncher-0.18.0.apk"
 
@@ -31,10 +30,9 @@ S wait-for-device
 
 echo ">> downloading + installing pinned APKs"
 curl -fsSL -o "$WORK/tvbro.apk"     "$TVBRO"
-curl -fsSL -o "$WORK/droidvnc.apk"  "$DROIDVNC"
 curl -fsSL -o "$WORK/tailscale.apk" "$TAILSCALE"
 curl -fsSL -o "$WORK/flauncher.apk" "$FLAUNCHER"
-for a in flauncher droidvnc tailscale tvbro; do S install -r "$WORK/$a.apk"; done
+for a in flauncher tailscale tvbro; do S install -r "$WORK/$a.apk"; done
 echo ">> NOTE: TiviMate (ar.tvplayer.tv) is a Play-Store install (free); install it from Play."
 
 echo ">> system-wide ad-block: AdGuard Private DNS (network-independent)"
@@ -45,12 +43,10 @@ echo ">> clean launcher: FLauncher as Home (disable stock launcher)"
 S shell cmd package set-home-activity me.efesser.flauncher/me.efesser.flauncher.MainActivity || true
 S shell pm disable-user --user 0 com.google.android.tvlauncher || true
 
-echo ">> droidVNC-NG unattended: grant capture + input, kill debug overlays"
-S shell appops set net.christianbeier.droidvnc_ng PROJECT_MEDIA allow
-S shell settings put secure enabled_accessibility_services net.christianbeier.droidvnc_ng/net.christianbeier.droidvnc_ng.InputService
-S shell settings put secure accessibility_enabled 1
+echo ">> kill debug overlays; long display timeout"
 S shell settings put system pointer_location 0
 S shell settings put system show_touches 0
+S shell settings put system screen_off_timeout 3600000
 
 echo ">> declutter (idempotent): remove non-kept entertainment apps"
 for pkg in air.com.vudu.air.DownloaderTablet com.amazon.music.tv com.google.android.play.games \
@@ -69,10 +65,11 @@ These cannot be done headlessly (by design):
 3. TiviMate: install from Play, add M3U playlist URL:
      $PLAYLIST_URL
    (TV playlist -> Done; skip EPG.)
-4. droidVNC-NG: set port 5900 + password (see SHIELD_VNC_PASSWORD in ucs2/.env),
-   Start on Boot ON, then Start. Capture/Input/Boot should read GRANTED.
-5. Tailscale: open app -> Get Started -> approve the device into the
+4. Tailscale: open app -> Get Started -> approve the device into the
    corbin.c.chase tailnet (QR/code), enable Always-on VPN. Do NOT set an exit
    node, do NOT block non-VPN traffic (Invariant 2: streams go direct).
+
+Remote view+control (no on-device app needed): from a Mac on the tailnet,
+   adb connect $ADB_ADDR && scrcpy --no-audio
 ==============================================================================
 EOF
