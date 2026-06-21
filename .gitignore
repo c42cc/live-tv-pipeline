@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
+*.log
+# dist/ and state/ are intentionally COMMITTED: dist/ is the published artifact
+# the appliance fetches; state/ is the rolling last-seen-alive history CI carries
+# forward between runs.

@@ -1,0 +1,96 @@
+{
+  "generated_utc": "2026-06-21T08:15:16.395355+00:00",
+  "candidates": 4169,
+  "deduped": 3719,
+  "alive": 2413,
+  "grace": 2,
+  "emitted": 2415,
+  "pruned": 0,
+  "dead_unknown": 1304,
+  "pass_rate": 0.6488,
+  "sources": [
+    {
+      "ref": "country:us",
+      "ok": true,
+      "count": 1376,
+      "error": ""
+    },
+    {
+      "ref": "country:uk",
+      "ok": true,
+      "count": 292,
+      "error": ""
+    },
+    {
+      "ref": "country:fr",
+      "ok": true,
+      "count": 217,
+      "error": ""
+    },
+    {
+      "ref": "country:de",
+      "ok": true,
+      "count": 282,
+      "error": ""
+    },
+    {
+      "ref": "country:jp",
+      "ok": true,
+      "count": 10,
+      "error": ""
+    },
+    {
+      "ref": "country:ca",
+      "ok": true,
+      "count": 219,
+      "error": ""
+    },
+    {
+      "ref": "country:au",
+      "ok": true,
+      "count": 72,
+      "error": ""
+    },
+    {
+      "ref": "country:qa",
+      "ok": true,
+      "count": 16,
+      "error": ""
+    },
+    {
+      "ref": "category:news",
+      "ok": true,
+      "count": 971,
+      "error": ""
+    },
+    {
+      "ref": "category:business",
+      "ok": true,
+      "count": 75,
+      "error": ""
+    },
+    {
+      "ref": "category:sports",
+      "ok": true,
+      "count": 420,
+      "error": ""
+    },
+    {
+      "ref": "category:documentary",
+      "ok": true,
+      "count": 199,
+      "error": ""
+    },
+    {
+      "ref": "category:science",
+      "ok": true,
+      "count": 20,
+      "error": ""
+    }
+  ],
+  "web": [],
+  "epg": {
+    "enabled": false
+  },
+  "duration_s": 227.9
+}

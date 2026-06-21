@@ -1,0 +1,69 @@
+name: build-and-publish
+
+# The scheduled self-validating build. Produces dist/playlist.m3u + dist/epg.xml.gz,
+# commits them back so the raw URL the appliance points at is always fresh.
+on:
+  schedule:
+    - cron: "17 */6 * * *"   # every 6 hours
+  push:
+    paths:
+      - "sources.yaml"
+      - "pipeline/**"
+      - ".github/workflows/build.yml"
+  workflow_dispatch: {}
+
+concurrency:
+  group: build-and-publish
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install ffmpeg (ffprobe)
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install python deps
+        run: pip install -r requirements.txt
+
+      - name: Build + validate + emit
+        id: build
+        run: python -m pipeline.run --min-emitted 20
+
+      - name: Acceptance — sampled streams genuinely play
+        run: python scripts/verify_artifacts.py
+
+      - name: Publish artifacts (commit dist/ + state/)
+        if: success()
+        run: |
+          git config user.name  "live-tv-pipeline[bot]"
+          git config user.email "actions@users.noreply.github.com"
+          git add dist state
+          if git diff --cached --quiet; then
+            echo "No artifact changes."
+          else
+            git commit -m "build: refresh playlist + state [skip ci]"
+            git push
+          fi
+
+      - name: Heartbeat — tell the monitor this build's outcome
+        if: always()
+        env:
+          HC: ${{ secrets.HEALTHCHECK_URL }}
+        run: |
+          if [ -z "$HC" ]; then echo "HEALTHCHECK_URL not set — skipping ping."; exit 0; fi
+          if [ "${{ job.status }}" = "success" ]; then
+            curl -fsS -m 10 "$HC" || echo "heartbeat ping failed (ours to fix)"
+          else
+            curl -fsS -m 10 "$HC/fail" || echo "heartbeat fail-ping failed (ours to fix)"
+          fi

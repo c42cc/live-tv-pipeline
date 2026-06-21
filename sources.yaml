@@ -1,0 +1,72 @@
+# =============================================================================
+# sources.yaml — the SINGLE human-edited control surface for ALL TV content.
+# =============================================================================
+# Edit this file + commit. The scheduled pipeline (GitHub Actions) fetches,
+# merges, resolves, validates, and republishes the playlist with ZERO device
+# interaction. The NVIDIA Shield never sees this file — it only ever fetches
+# the one published playlist.m3u / epg.xml.gz URL (Invariant 0).
+#
+# Add a country  -> one ISO code in `countries`.
+# Add a category -> one keyword in `categories`.
+# Add a channel  -> one line in `channels_explicit`.
+# Add a website  -> one line in `website_sources` (resolved via yt-dlp).
+# Remove anything -> add its tvg-id to `exclude.tvg_ids`.
+# =============================================================================
+
+include:
+  # iptv-org country codes (ISO 3166-1 alpha-2, EXCEPT the UK which iptv-org
+  # files as `uk`, not `gb`). The build reports any code that 404s.
+  countries: [us, uk, fr, de, jp, ca, au, qa]
+
+  # Cross-country category pulls from iptv-org.
+  categories: [news, business, sports, documentary, science]
+
+  # Broadcaster-direct or any other working HLS/DASH/MPEG-TS you have.
+  channels_explicit: []
+    # - { name: "France 24 English", url: "https://.../f24.m3u8", group: "News", tvg_id: "France24.fr" }
+
+  # "Direct website" streams that only play on a web page. Resolved to their
+  # current stream URL at BUILD TIME via yt-dlp, then validated like any other.
+  #
+  # NOTE ON VOLATILE TOKENS: some pages (notably YouTube-live) resolve to a URL
+  # that EXPIRES (~6h for googlevideo). The build reports each resolved URL's
+  # remaining lifetime (report.web[].expires_in_s). If a source is volatile, its
+  # URL must not be cached longer than it lives — keep the build cadence and the
+  # device refresh shorter than the token, or front it with a redirect resolver.
+  # The big-name broadcasters below are intentionally NOT listed here: they are
+  # already present with STABLE URLs via the iptv-org country/category pulls, so
+  # routing them through an expiring token would be redundant and fragile.
+  # Add your genuinely web-only sources here, e.g.:
+  #   - { name: "Some Local Webcast", url: "https://example.com/live", group: "Local" }
+  website_sources: []
+
+exclude:
+  # Blocklist specific channels by tvg-id (exact match).
+  tvg_ids: []
+  # Drop channels whose name matches any of these (case-insensitive substring).
+  name_contains: []
+
+# Resolvers for the country/category references above. {code}/{category} are
+# substituted per include entry. Public, stable, anonymously fetchable.
+upstreams:
+  country_url:  "https://iptv-org.github.io/iptv/countries/{code}.m3u"
+  category_url: "https://iptv-org.github.io/iptv/categories/{category}.m3u"
+
+# Electronic Program Guide. Optional (the grid works without it) and OFF by
+# default on purpose: a guide is only useful if its channel ids MATCH the
+# playlist's tvg-ids. iptv-org's tvg-ids (e.g. "AlJazeera.qa@English") do not
+# match the gracenote-style ids on generic XMLTV hosts, so a mismatched guide
+# would render as broken rather than absent. Enable this ONLY with an id-matched
+# source (e.g. self-hosted iptv-org/epg keyed to the same ids). The merge code is
+# implemented and unit-verified; a declared source that 404s is reported loudly.
+epg:
+  enabled: false
+  sources: []
+
+# Validation + pruning policy (the reliability multiplier).
+validate:
+  ffprobe_timeout_s: 8      # per-stream liveness probe timeout
+  max_workers: 60           # concurrent probes
+  time_budget_s: 900        # hard ceiling for the whole validate phase
+  prune_after_failures: 3   # consecutive failed builds before a channel is dropped
+  grace_days: 2             # keep a once-alive channel this long while under the failure threshold
